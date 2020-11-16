@@ -1,0 +1,21 @@
+{
+    "name": "vitaly-alexandrovich/post-shift",
+    "description": "Library for post-shift.ru API",
+    "version": "0.0.1",
+    "authors": [
+        {
+            "name": "Vitaly Dubovik",
+            "email": "dev.vitaly@gmail.com"
+        }
+    ],
+    "require": {
+        "vitaly-alexandrovich/http-client": "0.0.3",
+        "vitaly-alexandrovich/modeler": "dev-master",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "PostShift\\": "src/"
+        }
+    }
+}
