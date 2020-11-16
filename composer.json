@@ -1,7 +1,7 @@
 {
     "name": "vitaly-alexandrovich/post-shift",
     "description": "Library for post-shift.ru API",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "authors": [
         {
             "name": "Vitaly Dubovik",
