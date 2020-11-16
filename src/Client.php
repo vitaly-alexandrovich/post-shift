@@ -17,6 +17,8 @@ class Client
 {
     const API_ENDPOINT = 'https://post-shift.ru/api.php';
 
+    protected $proxy = null;
+
     /**
      * @param null $name
      * @return NewResponse
@@ -31,7 +33,7 @@ class Client
             $params['name'] = $name;
         }
 
-        return NewResponse::fromArray(static::request('new', $params));
+        return NewResponse::fromArray($this->request('new', $params));
     }
 
     /**
@@ -44,7 +46,7 @@ class Client
     public function getList($key)
     {
         try {
-            $list = static::request('getlist', ['key' => $key]);
+            $list = $this->request('getlist', ['key' => $key]);
         } catch (ApiException $e) {
             if ($e->getMessage() === 'the_list_is_empty') {
                 // Если писем на почте нет - возвращаем пустой массив вместо исключения с ошибкой
@@ -69,7 +71,7 @@ class Client
      */
     public function getMail($id, $key)
     {
-        return GetMailResponse::fromArray(static::request('getmail', ['id' => $id, 'key' => $key]));
+        return GetMailResponse::fromArray($this->request('getmail', ['id' => $id, 'key' => $key]));
     }
 
     /**
@@ -81,7 +83,7 @@ class Client
      */
     public function livetime($key)
     {
-        return LiveTimeResponse::fromArray(static::request('livetime', ['key' => $key]));
+        return LiveTimeResponse::fromArray($this->request('livetime', ['key' => $key]));
     }
 
     /**
@@ -93,7 +95,7 @@ class Client
      */
     public function update($key)
     {
-        return LiveTimeResponse::fromArray(static::request('livetime', ['key' => $key]));
+        return LiveTimeResponse::fromArray($this->request('livetime', ['key' => $key]));
     }
 
     /**
@@ -105,7 +107,7 @@ class Client
      */
     public function delete($key)
     {
-        $response = static::request('delete', ['key' => $key]);
+        $response = $this->request('delete', ['key' => $key]);
         return isset($response['delete']) && $response['delete'] === 'ok';
     }
 
@@ -118,7 +120,7 @@ class Client
      */
     public function deleteAll($key)
     {
-        $response = static::request('delete', ['key' => $key]);
+        $response = $this->request('delete', ['key' => $key]);
         return isset($response['delete']) && $response['delete'] === 'ok';
     }
 
@@ -131,8 +133,32 @@ class Client
      */
     public function clear($key)
     {
-        $response = static::request('clear', ['key' => $key]);
+        $response = $this->request('clear', ['key' => $key]);
         return isset($response['clear']) && $response['clear'] === 'ok';
+    }
+
+    /**
+     * @param $proxy
+     */
+    public function setProxy($proxy)
+    {
+        $this->proxy = $proxy;
+    }
+
+    /**
+     * @return string
+     */
+    public function hasProxy()
+    {
+        return !is_null($this->proxy);
+    }
+
+    /**
+     * @return string
+     */
+    public function getProxy()
+    {
+        return $this->proxy;
     }
 
     /**
@@ -143,13 +169,18 @@ class Client
      * @throws ServerErrorException
      * @throws ApiException
      */
-    protected static function request($action, $params = [])
+    protected function request($action, $params = [])
     {
         $query = http_build_query(array_merge($params, ['action' => $action]));
 
         $request = new Request(static::API_ENDPOINT . '?' . $query . '&type=json');
 
+        if ($this->hasProxy()) {
+            $request->setProxy($this->getProxy());
+        }
+        
         $client = new \HttpClient\Client();
+        
         $response = $client->sendRequest($request);
 
         if ($response->getCode() !== 200) {
